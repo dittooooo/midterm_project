@@ -1,0 +1,13 @@
+.invalid-feedback {
+  display: block !important;
+}
+
+nav {
+  height: 10vh;
+  min-height: 80px;
+}
+
+main {
+  height: auto;
+  min-height: 90vh;
+}
