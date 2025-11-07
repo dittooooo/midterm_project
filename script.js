@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
       validate: (value) => {
         if (!value) return "密碼為必填欄位";
         if (value.length < 8) return "密碼至少需要 8 個字元";
-        if (!/[a-z]/.test(value)) return "密碼需要包含英文字母";
+        if (!/[A-Za-z]/.test(value)) return "密碼需要包含英文字母";
         if (!/[0-9]/.test(value)) return "密碼需要包含數字";
         return "";
       },
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       field.input.classList.add("is-valid");
       field.input.classList.remove("is-invalid");
-      field.error.textContent = "";
+      field.error.textContent = "\u00A0"; // 使用 non-breaking space 來保持空間
       return true;
     }
   }
@@ -173,10 +173,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isValid) {
       // 模擬表單提交
       setTimeout(() => {
-        document.getElementById("result").classList.remove("d-none");
-        document.getElementById("result").textContent = "註冊成功！";
+        // 清空所有欄位
+        clearForm();
+        const result = document.getElementById("result");
+        result.classList.remove("d-none");
         busyMsg.style.display = "none";
         submitBtn.disabled = false;
+        setTimeout(() => {
+          result.classList.add("d-none");
+        }, 2000);
       }, 1000);
     } else {
       // 立即重新啟用按鈕和隱藏處理中訊息
@@ -184,4 +189,22 @@ document.addEventListener("DOMContentLoaded", () => {
       submitBtn.disabled = false;
     }
   });
+
+  function clearForm() {
+    Object.keys(fields).forEach((fieldName) => {
+      const field = fields[fieldName];
+      if (field.input.type === "checkbox") {
+        field.input.checked = false;
+      } else {
+        field.input.value = "";
+      }
+      field.input.classList.remove("is-valid");
+      field.error.textContent = "\u00A0";
+    });
+
+    // 重設所有驗證狀態
+    Object.keys(validationState).forEach((field) => {
+      validationState[field] = false;
+    });
+  }
 });
