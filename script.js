@@ -11,7 +11,62 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmPassword: false,
     terms: false,
   };
+  // 密碼強度檢查函數
+  function checkPasswordStrength(password) {
+    const hasNumber = /[0-9]/.test(password);
+    const hasAlpha = /[A-Za-z]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasSymbol = /[^A-Za-z0-9]/.test(password);
 
+    let score = 0; // 以 20 為單位，最多 80
+    if (password.length >= 8) {
+      score += 20;
+      if (hasNumber || hasAlpha) score += 20;
+      if ((hasNumber && hasAlpha) || (hasLower && hasUpper)) score += 20;
+      if (hasUpper && hasLower && hasNumber) score += 20;
+      if (hasUpper && hasLower && hasNumber && hasSymbol) score += 20;
+    }
+
+    let feedback = "";
+    if (password.length === 0) feedback = "尚未輸入";
+    else if (password.length > 0 && score === 0) {
+      feedback = "檢測中...";
+    } else {
+      if (score === 20) feedback = "非常弱";
+      else if (score === 40) feedback = "弱";
+      else if (score === 60) feedback = "中等";
+      else if (score === 80) feedback = "強";
+      else feedback = "非常強";
+    }
+
+    console.log(score);
+    return { score, feedback };
+  }
+
+  // 更新密碼強度顯示
+  function updatePasswordStrength(password) {
+    const strengthBar = document.querySelector(
+      "#passwordStrength .progress-bar"
+    );
+    const strengthText = document.getElementById("strengthText");
+    const { score, feedback } = checkPasswordStrength(password);
+
+    strengthBar.style.width = score + "%";
+    strengthBar.className = "progress-bar";
+
+    if (score <= 20) {
+      strengthBar.classList.add("bg-danger");
+    } else if (score <= 40) {
+      strengthBar.classList.add("bg-warning");
+    } else if (score <= 60) {
+      strengthBar.classList.add("bg-info");
+    } else {
+      strengthBar.classList.add("bg-success");
+    }
+
+    strengthText.textContent = "密碼強度: " + feedback;
+  }
   const fields = {
     fullname: {
       input: document.getElementById("fullname"),
@@ -106,6 +161,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // 密碼變更時重新驗證確認密碼
     if (fieldName === "password") {
       field.input.addEventListener("input", () => {
+        // 更新密碼強度指示器
+        updatePasswordStrength(field.input.value);
+
+        // 重新驗證確認密碼
+
         if (
           validationState["confirmPassword"] &&
           fields.confirmPassword.input.value
