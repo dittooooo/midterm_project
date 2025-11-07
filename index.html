@@ -33,13 +33,19 @@
         <div class="container w-75">
           <div class="card">
             <div class="card-body p-4">
-              <!-- 繼續修改RWD呈現 -->
-              <div class="d-flex align-items-end gap-3 mb-3">
-                <h1 class="card-title mb-0">會員註冊</h1>
-                <p class="lead mb-0">請填寫下列資訊建立帳號 。</p>
+              <!-- 標題與描述的響應式布局 -->
+              <div class="container p-0">
+                <div class="row mb-3 gx-4 align-items-end">
+                  <div class="col-auto">
+                    <h1 class="card-title mb-md-0 mb-2" style="white-space: nowrap;">會員註冊</h1>
+                  </div>
+                  <div class="col-12 col-md-auto">
+                    <p class="lead mb-0 text-nowrap">請填寫下列資訊建立帳號。</p>
+                  </div>
+                </div>
               </div>
 
-              <form id="signupForm" novalidate>
+              <form id="signupForm" novalidate></form>
                 <div class="mb-2">
                   <label for="fullname" class="form-label">姓名（必填）</label>
                   <input
