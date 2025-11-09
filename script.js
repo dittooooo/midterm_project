@@ -1,3 +1,37 @@
+(() => {
+  const KEY = "bs-theme";
+  const root = document.documentElement;
+  const btn = document.getElementById("themeToggle");
+  const icon = document.getElementById("themeIcon");
+
+  const apply = (mode) => {
+    root.setAttribute("data-bs-theme", mode);
+    if (icon) {
+      if (mode === "dark") {
+        icon.classList.remove("fa-moon");
+        icon.classList.add("fa-sun");
+      } else {
+        icon.classList.remove("fa-sun");
+        icon.classList.add("fa-moon");
+      }
+    }
+  };
+
+  // 1) 預設 light；若有使用者設定就以設定為準
+  const saved = localStorage.getItem(KEY);
+  apply(saved === "dark" ? "dark" : "light");
+
+  // 2) 切換
+  if (btn) {
+    btn.addEventListener("click", () => {
+      const cur = root.getAttribute("data-bs-theme") || "light";
+      const next = cur === "dark" ? "light" : "dark";
+      apply(next);
+      localStorage.setItem(KEY, next);
+    });
+  }
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("signupForm");
   const submitBtn = document.getElementById("submitBtn");

@@ -1,28 +1,31 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-bs-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>會員註冊</title>
-    <link rel="stylesheet" href="style.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
-    <div class="bg-light min-vh-100">
-      <nav class="navbar navbar-dark bg-dark border-bottom px-5">
+    <div class="min-vh-100">
+      <nav class="navbar border-bottom px-5">
         <div class="container-fluid">
           <h3 class="navbar-brand mb-0 text-white">會員系統</h3>
-          <ul class="navbar-nav ms-auto flex-row">
-            <li class="nav-item">
-              <a class="nav-link text-white px-2" href="#">登入</a>
-            </li>
-          </ul>
+          <div class="d-flex align-items-center gap-2">
+            <a class="link-body-emphasis nav-link px-2" href="#">登入</a>
+          </div>
         </div>
       </nav>
 
@@ -30,22 +33,29 @@
         class="d-flex align-items-center justify-content-center"
         role="main"
       >
-        <div class="container w-75">
-          <div class="card">
+        <div class="container w-75 py-4">
+          <div class="card shadow-sm">
             <div class="card-body p-4">
               <!-- 標題與描述的響應式布局 -->
               <div class="container p-0">
                 <div class="row mb-3 gx-4 align-items-end">
                   <div class="col-auto">
-                    <h1 class="card-title mb-md-0 mb-2" style="white-space: nowrap;">會員註冊</h1>
+                    <h1
+                      class="card-title mb-md-0 mb-2"
+                      style="white-space: nowrap"
+                    >
+                      會員註冊
+                    </h1>
                   </div>
                   <div class="col-12 col-md-auto">
-                    <p class="lead mb-0 text-nowrap">請填寫下列資訊建立帳號。</p>
+                    <p class="lead mb-0 text-nowrap">
+                      請填寫下列資訊建立帳號。
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <form id="signupForm" novalidate></form>
+              <form id="signupForm" novalidate>
                 <div class="mb-2">
                   <label for="fullname" class="form-label">姓名（必填）</label>
                   <input
@@ -214,6 +224,13 @@
           </div>
         </div>
       </main>
+      <button
+        id="themeToggle"
+        type="button"
+        class="btn btn-light btn-sm rounded-circle shadow theme-toggle-fab"
+      >
+        <i id="themeIcon" class="fa-solid fa-moon fs-5"></i>
+      </button>
     </div>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
