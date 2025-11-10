@@ -1,0 +1,177 @@
+.invalid-feedback {
+  display: block !important;
+  min-height: 1rem;
+}
+
+main {
+  height: auto;
+  min-height: 90vh;
+}
+
+:root[data-bs-theme="light"] {
+  --bs-primary: #2563eb;
+  --bs-primary-rgb: 37, 99, 235;
+
+  /* 頁面背景＆文字 */
+  --bs-body-bg: #e5e7eb; /* 淺灰背景 */
+  --bs-body-color: #111827; /* 深灰文字 */
+
+  /* Navbar：亮色模式 → 深色 Navbar */
+  --nav-bg: #111827; /* 深藍灰底 */
+  --nav-text: #e5e7eb; /* 淺字色 */
+
+  --bs-secondary-color: #6b7280; /* 次要文字 */
+  --bs-border-color: #d1d5db; /* 一般邊框 */
+
+  /* 表單卡片：用漸層做出深淺差 */
+  --card-bg: #ffffff; /* 左上角偏白 */
+  --bs-card-border-color: #dbeafe;
+  --bs-card-color: var(--bs-body-color);
+  --shadow-color: rgba(0, 0, 0, 0.2);
+
+  /* 連結顏色 */
+  --bs-link-color: #1d4ed8;
+  --bs-link-hover-color: #1e40af;
+
+  --btn-color: var(--nav-bg);
+  --btn-text: #f9fafb;
+  --btn-hover-color: rgb(60, 60, 72);
+}
+
+/* 暗色主題：深藍背景＋淡藍重點 */
+:root[data-bs-theme="dark"] {
+  --bs-primary: #60a5fa;
+  --bs-primary-rgb: 96, 165, 250;
+
+  --bs-body-bg: #05050d; /* 很深的藍黑 */
+  --bs-body-color: #e5e7eb; /* 淺灰文字 */
+
+  /* Navbar：暗色模式 → 淺色 Navbar（反轉） */
+  --nav-bg: #101114; /* 幾乎白 */
+  --nav-text: #e5e7eb; /* 深灰字 */
+
+  --bs-secondary-color: #9ca3af;
+  --bs-border-color: #1f2937;
+
+  /* 表單卡片：深色裡的漸層，比背景稍微亮 */
+  --card-bg: #27282d;
+  --bs-card-border-color: #1f2937;
+  --bs-card-color: var(--bs-body-color);
+  --shadow-color: rgba(133, 133, 133, 0.3);
+
+  --bs-link-color: #93c5fd;
+  --bs-link-hover-color: #bfdbfe;
+
+  --btn-color: #ebebeb;
+  --btn-text: #1c1c1c;
+  --btn-hover-color: #d4d4d4;
+}
+
+/* Navbar 跟著主題 */
+.navbar {
+  height: 10vh;
+  min-height: 80px;
+  background-color: var(--nav-bg) !important;
+  color: var(--nav-text) !important;
+}
+
+/* 讓連結有更一致的美感（可選） */
+.navbar .navbar-brand,
+.navbar .nav-link {
+  color: var(--nav-text) !important;
+  transition: color 0.28s ease;
+}
+.navbar .nav-link:hover {
+  opacity: 0.85;
+}
+
+/* 讓常見元件吃到變數（多數 Bootstrap 會自動套） */
+.card {
+  background: var(--card-bg);
+  color: var(--bs-card-color);
+  border-color: var(--bs-card-border-color);
+  box-shadow: 0 6px 16px var(--shadow-color) !important;
+  /* 你原本的動畫效果保留 */
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-theme {
+  color: var(--nav-text) !important;
+  border: none;
+  outline: none;
+  background: transparent;
+  transition: background-color 0.28s ease, color 0.28s ease,
+    border-color 0.28s ease;
+}
+.btn-theme:hover {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+#submitBtn {
+  background-color: var(--btn-color);
+  color: var(--btn-text);
+  border: none;
+}
+
+#submitBtn:hover {
+  background-color: var(--btn-hover-color);
+  color: var(--btn-text);
+}
+
+body,
+.card,
+.navbar,
+.btn,
+.form-control,
+.list-group-item {
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-toggle-fab {
+  background-color: var(--btn-color);
+
+  position: fixed;
+  left: 3rem; /* 想更靠邊可以改成 1rem 或 0.5rem */
+  bottom: 2rem; /* 想更貼底就改小一點 */
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* 比卡片、Navbar 都高，方便點 */
+}
+
+.theme-toggle-fab:hover,
+.theme-toggle-fab:focus-visible {
+  background-color: var(--btn-hover-color);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+}
+
+.theme-toggle-fab:active {
+  transform: scale(0.97) translateY(0);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
+}
+
+#themeIcon.fa-moon {
+  color: #38bdf8;
+}
+
+#themeIcon.fa-sun {
+  color: #dca709;
+}
+
+@media (max-width: 800px) {
+  .theme-toggle-fab {
+    left: 1.2rem;
+    bottom: 1.2rem;
+  }
+}
+
+@media (min-width: 1000px) {
+  .theme-toggle-fab {
+    left: 3.5rem;
+    bottom: 2.5rem;
+  }
+}
