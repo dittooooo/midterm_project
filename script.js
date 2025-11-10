@@ -35,8 +35,33 @@
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("signupForm");
   const submitBtn = document.getElementById("submitBtn");
+  const registerView = document.getElementById("registerView");
+  const loginView = document.getElementById("loginView");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-  // 追蹤每個欄位是否已經被驗證過
+  function showRegisterView() {
+    if (registerView && loginView) {
+      registerView.classList.remove("d-none");
+      loginView.classList.add("d-none");
+    }
+  }
+
+  function showLoginView() {
+    if (registerView && loginView) {
+      registerView.classList.add("d-none");
+      loginView.classList.remove("d-none");
+    }
+  }
+
+  showRegisterView();
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      showRegisterView();
+    });
+  }
+
+  // 驗證功能
   const validationState = {
     fullname: false,
     email: false,
@@ -254,34 +279,47 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    // 停用提交按鈕，避免重複提交
-    submitBtn.disabled = true;
-
-    // 顯示處理中訊息
     const busyMsg = document.getElementById("busyMsg");
+    submitBtn.disabled = true;
     busyMsg.style.display = "block";
 
-    // 驗證所有欄位
     const isValid = validateAllFields();
 
-    if (isValid) {
-      // 模擬表單提交
-      setTimeout(() => {
-        // 清空所有欄位
-        clearForm();
-        const result = document.getElementById("result");
-        result.classList.remove("d-none");
-        busyMsg.style.display = "none";
-        submitBtn.disabled = false;
-        setTimeout(() => {
-          result.classList.add("d-none");
-        }, 2000);
-      }, 1000);
-    } else {
-      // 立即重新啟用按鈕和隱藏處理中訊息
+    // 欄位有錯 → 直接結束
+    if (!isValid) {
       busyMsg.style.display = "none";
       submitBtn.disabled = false;
+      return;
     }
+
+    // 模擬送出（例如 0.8 秒）
+    setTimeout(() => {
+      busyMsg.style.display = "none";
+
+      // 清空表單
+      clearForm();
+
+      const result = document.getElementById("result");
+      const resultText = result.querySelector("p");
+
+      let countdown = 3; // 倒數秒數
+
+      resultText.textContent = `註冊成功！${countdown} 秒後自動登入…`;
+      result.classList.remove("d-none");
+
+      const timer = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          resultText.textContent = `註冊成功！${countdown} 秒後自動登入…`;
+        } else {
+          clearInterval(timer);
+          result.classList.add("d-none");
+          submitBtn.disabled = false;
+          // 切到登入畫面
+          showLoginView();
+        }
+      }, 1000);
+    }, 1000);
   });
 
   function clearForm() {

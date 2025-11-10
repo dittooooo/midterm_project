@@ -146,12 +146,12 @@ body,
 .theme-toggle-fab:hover,
 .theme-toggle-fab:focus-visible {
   background-color: var(--btn-hover-color);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+  box-shadow: 0 8px 18px var(--shadow-color);
 }
 
 .theme-toggle-fab:active {
   transform: scale(0.97) translateY(0);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
+  box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 #themeIcon.fa-moon {
