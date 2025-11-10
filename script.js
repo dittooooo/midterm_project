@@ -34,9 +34,124 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("signupForm");
+  const strengthBar = document.querySelector("#passwordStrength .progress-bar");
+  const strengthText = document.getElementById("strengthText");
   const submitBtn = document.getElementById("submitBtn");
+  const registerView = document.getElementById("registerView");
+  const loginView = document.getElementById("loginView");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const navLoginLink = document.getElementById("navLogin");
+  const MEMBER_KEY = "memberInfo";
+  const loginModalEl = document.getElementById("loginModal");
+  const loginNameInput = document.getElementById("loginName");
+  const loginPasswordInput = document.getElementById("loginPassword");
+  const loginError = document.getElementById("loginError");
+  const loginSubmitBtn = document.getElementById("loginSubmitBtn");
 
-  // 追蹤每個欄位是否已經被驗證過
+  let loginModal = null;
+  if (loginModalEl && window.bootstrap && bootstrap.Modal) {
+    loginModal = new bootstrap.Modal(loginModalEl);
+  }
+
+  function saveMemberToStorage() {
+    const member = {
+      fullname: document.getElementById("fullname").value.trim(),
+      password: document.getElementById("password").value,
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+    };
+    localStorage.setItem(MEMBER_KEY, JSON.stringify(member));
+  }
+
+  function getMemberFromStorage() {
+    const raw = localStorage.getItem(MEMBER_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  // 處理模擬登入
+  function switchView(showEl, hideEl) {
+    if (!showEl || !hideEl) return;
+
+    hideEl.classList.remove("is-active");
+    hideEl.classList.add("d-none");
+
+    showEl.classList.remove("d-none");
+
+    showEl.classList.remove("is-active");
+    void showEl.offsetWidth;
+    showEl.classList.add("is-active");
+  }
+
+  function showRegisterView() {
+    switchView(registerView, loginView);
+  }
+
+  function showLoginView() {
+    switchView(loginView, registerView);
+  }
+
+  // 初始化：一開始顯示註冊畫面並加上動畫
+  showRegisterView();
+
+  // 登出 → 回到註冊畫面（也會播動畫）
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      showRegisterView();
+    });
+  }
+
+  if (navLoginLink && loginModal) {
+    navLoginLink.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      // reset 欄位與錯誤訊息
+      if (loginError) loginError.classList.add("d-none");
+      if (loginNameInput) loginNameInput.value = "";
+      if (loginPasswordInput) loginPasswordInput.value = "";
+
+      loginModal.show();
+    });
+  }
+
+  // Modal 內的登入按鈕：用 localStorage 資料模擬登入
+  if (loginSubmitBtn && loginModal) {
+    loginSubmitBtn.addEventListener("click", () => {
+      const member = getMemberFromStorage();
+      if (!member) {
+        if (loginError) {
+          loginError.textContent = "目前沒有註冊資料，請先完成註冊。";
+          loginError.classList.remove("d-none");
+        }
+        return;
+      }
+
+      const nameInput = loginNameInput?.value.trim() || "";
+      const pwdInput = loginPasswordInput?.value || "";
+
+      const nameOk = nameInput === member.fullname;
+      const pwOk = pwdInput === member.password;
+
+      if (!nameOk || !pwOk) {
+        if (loginError) {
+          loginError.textContent = "姓名或密碼錯誤，請再試一次。";
+          loginError.classList.remove("d-none");
+        }
+        return;
+      }
+
+      // 登入成功：關掉 modal，切到登入畫面（有動畫）
+      if (loginError) loginError.classList.add("d-none");
+      loginModal.hide();
+      showLoginView();
+    });
+  }
+
+  // 驗證功能
   const validationState = {
     fullname: false,
     email: false,
@@ -74,16 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
       else feedback = "非常強";
     }
 
-    console.log(score);
     return { score, feedback };
   }
 
   // 更新密碼強度顯示
   function updatePasswordStrength(password) {
-    const strengthBar = document.querySelector(
-      "#passwordStrength .progress-bar"
-    );
-    const strengthText = document.getElementById("strengthText");
     const { score, feedback } = checkPasswordStrength(password);
 
     strengthBar.style.width = score + "%";
@@ -101,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     strengthText.textContent = "密碼強度: " + feedback;
   }
+
   const fields = {
     fullname: {
       input: document.getElementById("fullname"),
@@ -233,7 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       field.input.classList.add("is-valid");
       field.input.classList.remove("is-invalid");
-      field.error.textContent = "\u00A0"; // 使用 non-breaking space 來保持空間
+      field.error.textContent = "\u00A0";
       return true;
     }
   }
@@ -242,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function validateAllFields() {
     let isValid = true;
     Object.keys(fields).forEach((fieldName) => {
-      validationState[fieldName] = true; // 標記所有欄位為已驗證
+      validationState[fieldName] = true;
       if (!validateField(fieldName)) {
         isValid = false;
       }
@@ -254,36 +365,48 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    // 停用提交按鈕，避免重複提交
-    submitBtn.disabled = true;
-
-    // 顯示處理中訊息
     const busyMsg = document.getElementById("busyMsg");
+    submitBtn.disabled = true;
     busyMsg.style.display = "block";
 
-    // 驗證所有欄位
     const isValid = validateAllFields();
 
-    if (isValid) {
-      // 模擬表單提交
-      setTimeout(() => {
-        // 清空所有欄位
-        clearForm();
-        const result = document.getElementById("result");
-        result.classList.remove("d-none");
-        busyMsg.style.display = "none";
-        submitBtn.disabled = false;
-        setTimeout(() => {
-          result.classList.add("d-none");
-        }, 2000);
-      }, 1000);
-    } else {
-      // 立即重新啟用按鈕和隱藏處理中訊息
+    if (!isValid) {
       busyMsg.style.display = "none";
       submitBtn.disabled = false;
+      return;
     }
+
+    // 模擬送出
+    setTimeout(() => {
+      busyMsg.style.display = "none";
+      saveMemberToStorage();
+
+      clearForm();
+
+      const result = document.getElementById("result");
+      const resultText = result.querySelector("p");
+
+      let countdown = 3;
+
+      resultText.textContent = `註冊成功！${countdown} 秒後自動登入…`;
+      result.classList.remove("d-none");
+
+      const timer = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          resultText.textContent = `註冊成功！${countdown} 秒後自動登入…`;
+        } else {
+          clearInterval(timer);
+          result.classList.add("d-none");
+          submitBtn.disabled = false;
+          showLoginView();
+        }
+      }, 1000);
+    }, 1000);
   });
 
+  // 重設所有驗證狀態
   function clearForm() {
     Object.keys(fields).forEach((fieldName) => {
       const field = fields[fieldName];
@@ -296,7 +419,9 @@ document.addEventListener("DOMContentLoaded", () => {
       field.error.textContent = "\u00A0";
     });
 
-    // 重設所有驗證狀態
+    strengthBar.style.width = 0;
+    strengthText.textContent = "尚未輸入";
+
     Object.keys(validationState).forEach((field) => {
       validationState[field] = false;
     });
