@@ -24,7 +24,9 @@
         <div class="container-fluid">
           <h3 class="navbar-brand mb-0 text-white">會員系統</h3>
           <div class="d-flex align-items-center gap-2">
-            <a class="link-body-emphasis nav-link px-2" href="#">登入</a>
+            <a id="navLogin" class="link-body-emphasis nav-link px-2" href="#"
+              >登入</a
+            >
           </div>
         </div>
       </nav>
@@ -208,7 +210,11 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                  <button type="submit" id="submitBtn" class="btn btn-primary">
+                  <button
+                    type="submit"
+                    id="submitBtn"
+                    class="btn btn-primary btnStyle"
+                  >
                     註冊
                   </button>
                   <div
@@ -229,11 +235,75 @@
             <div class="card-body p-4 text-center">
               <h1 class="mb-3">登入</h1>
               <p class="mb-4">已成功登入系統。</p>
-              <button id="logoutBtn" class="btn btn-secondary">登出</button>
+              <button id="logoutBtn" class="btn btn-secondary btnStyle">
+                登出
+              </button>
             </div>
           </div>
         </div>
       </main>
+
+      <!-- Dummy login -->
+      <div
+        class="modal fade"
+        id="loginModal"
+        tabindex="-1"
+        aria-labelledby="loginModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">會員登入</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="關閉"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="loginName" class="form-label">姓名</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="loginName"
+                  autocomplete="username"
+                />
+              </div>
+              <div class="mb-1">
+                <label for="loginPassword" class="form-label">密碼</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="loginPassword"
+                  autocomplete="current-password"
+                />
+              </div>
+              <div id="loginError" class="text-danger small mt-1 d-none">
+                姓名或密碼錯誤，請再試一次。
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary btnStyle"
+                id="loginSubmitBtn"
+              >
+                登入
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <button
         id="themeToggle"
         type="button"

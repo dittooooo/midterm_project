@@ -108,15 +108,13 @@ main {
   background: rgba(127, 127, 127, 0.08);
 }
 
-#submitBtn,
-#logoutBtn {
+.btnStyle {
   background-color: var(--btn-color);
   color: var(--btn-text);
   border: none;
 }
 
-#submitBtn:hover,
-#logoutBtn:hover {
+.btnStyle:hover {
   background-color: var(--btn-hover-color);
   color: var(--btn-text);
 }

@@ -40,20 +40,50 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerView = document.getElementById("registerView");
   const loginView = document.getElementById("loginView");
   const logoutBtn = document.getElementById("logoutBtn");
+  const navLoginLink = document.getElementById("navLogin");
+  const MEMBER_KEY = "memberInfo";
+  const loginModalEl = document.getElementById("loginModal");
+  const loginNameInput = document.getElementById("loginName");
+  const loginPasswordInput = document.getElementById("loginPassword");
+  const loginError = document.getElementById("loginError");
+  const loginSubmitBtn = document.getElementById("loginSubmitBtn");
 
+  let loginModal = null;
+  if (loginModalEl && window.bootstrap && bootstrap.Modal) {
+    loginModal = new bootstrap.Modal(loginModalEl);
+  }
+
+  function saveMemberToStorage() {
+    const member = {
+      fullname: document.getElementById("fullname").value.trim(),
+      password: document.getElementById("password").value,
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+    };
+    localStorage.setItem(MEMBER_KEY, JSON.stringify(member));
+  }
+
+  function getMemberFromStorage() {
+    const raw = localStorage.getItem(MEMBER_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  // 處理模擬登入
   function switchView(showEl, hideEl) {
     if (!showEl || !hideEl) return;
 
-    // 先把舊畫面關掉
     hideEl.classList.remove("is-active");
     hideEl.classList.add("d-none");
 
-    // 顯示新畫面
     showEl.classList.remove("d-none");
 
-    // 重置動畫狀態，強迫瀏覽器重新計算，才會觸發 transition
     showEl.classList.remove("is-active");
-    void showEl.offsetWidth; // 小技巧：強制 reflow
+    void showEl.offsetWidth;
     showEl.classList.add("is-active");
   }
 
@@ -72,6 +102,52 @@ document.addEventListener("DOMContentLoaded", () => {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       showRegisterView();
+    });
+  }
+
+  if (navLoginLink && loginModal) {
+    navLoginLink.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      // reset 欄位與錯誤訊息
+      if (loginError) loginError.classList.add("d-none");
+      if (loginNameInput) loginNameInput.value = "";
+      if (loginPasswordInput) loginPasswordInput.value = "";
+
+      loginModal.show();
+    });
+  }
+
+  // Modal 內的登入按鈕：用 localStorage 資料模擬登入
+  if (loginSubmitBtn && loginModal) {
+    loginSubmitBtn.addEventListener("click", () => {
+      const member = getMemberFromStorage();
+      if (!member) {
+        if (loginError) {
+          loginError.textContent = "目前沒有註冊資料，請先完成註冊。";
+          loginError.classList.remove("d-none");
+        }
+        return;
+      }
+
+      const nameInput = loginNameInput?.value.trim() || "";
+      const pwdInput = loginPasswordInput?.value || "";
+
+      const nameOk = nameInput === member.fullname;
+      const pwOk = pwdInput === member.password;
+
+      if (!nameOk || !pwOk) {
+        if (loginError) {
+          loginError.textContent = "姓名或密碼錯誤，請再試一次。";
+          loginError.classList.remove("d-none");
+        }
+        return;
+      }
+
+      // 登入成功：關掉 modal，切到登入畫面（有動畫）
+      if (loginError) loginError.classList.add("d-none");
+      loginModal.hide();
+      showLoginView();
     });
   }
 
@@ -304,6 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 模擬送出
     setTimeout(() => {
       busyMsg.style.display = "none";
+      saveMemberToStorage();
 
       clearForm();
 
