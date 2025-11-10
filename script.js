@@ -34,6 +34,8 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("signupForm");
+  const strengthBar = document.querySelector("#passwordStrength .progress-bar");
+  const strengthText = document.getElementById("strengthText");
   const submitBtn = document.getElementById("submitBtn");
   const registerView = document.getElementById("registerView");
   const loginView = document.getElementById("loginView");
@@ -99,16 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
       else feedback = "非常強";
     }
 
-    console.log(score);
     return { score, feedback };
   }
 
   // 更新密碼強度顯示
   function updatePasswordStrength(password) {
-    const strengthBar = document.querySelector(
-      "#passwordStrength .progress-bar"
-    );
-    const strengthText = document.getElementById("strengthText");
     const { score, feedback } = checkPasswordStrength(password);
 
     strengthBar.style.width = score + "%";
@@ -126,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     strengthText.textContent = "密碼強度: " + feedback;
   }
+
   const fields = {
     fullname: {
       input: document.getElementById("fullname"),
@@ -258,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       field.input.classList.add("is-valid");
       field.input.classList.remove("is-invalid");
-      field.error.textContent = "\u00A0"; // 使用 non-breaking space 來保持空間
+      field.error.textContent = "\u00A0";
       return true;
     }
   }
@@ -267,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function validateAllFields() {
     let isValid = true;
     Object.keys(fields).forEach((fieldName) => {
-      validationState[fieldName] = true; // 標記所有欄位為已驗證
+      validationState[fieldName] = true;
       if (!validateField(fieldName)) {
         isValid = false;
       }
@@ -285,24 +283,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isValid = validateAllFields();
 
-    // 欄位有錯 → 直接結束
     if (!isValid) {
       busyMsg.style.display = "none";
       submitBtn.disabled = false;
       return;
     }
 
-    // 模擬送出（例如 0.8 秒）
+    // 模擬送出
     setTimeout(() => {
       busyMsg.style.display = "none";
 
-      // 清空表單
       clearForm();
 
       const result = document.getElementById("result");
       const resultText = result.querySelector("p");
 
-      let countdown = 3; // 倒數秒數
+      let countdown = 3;
 
       resultText.textContent = `註冊成功！${countdown} 秒後自動登入…`;
       result.classList.remove("d-none");
@@ -315,13 +311,13 @@ document.addEventListener("DOMContentLoaded", () => {
           clearInterval(timer);
           result.classList.add("d-none");
           submitBtn.disabled = false;
-          // 切到登入畫面
           showLoginView();
         }
       }, 1000);
     }, 1000);
   });
 
+  // 重設所有驗證狀態
   function clearForm() {
     Object.keys(fields).forEach((fieldName) => {
       const field = fields[fieldName];
@@ -334,7 +330,9 @@ document.addEventListener("DOMContentLoaded", () => {
       field.error.textContent = "\u00A0";
     });
 
-    // 重設所有驗證狀態
+    strengthBar.style.width = 0;
+    strengthText.textContent = "尚未輸入";
+
     Object.keys(validationState).forEach((field) => {
       validationState[field] = false;
     });
