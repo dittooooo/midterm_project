@@ -41,22 +41,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginView = document.getElementById("loginView");
   const logoutBtn = document.getElementById("logoutBtn");
 
+  function switchView(showEl, hideEl) {
+    if (!showEl || !hideEl) return;
+
+    // 先把舊畫面關掉
+    hideEl.classList.remove("is-active");
+    hideEl.classList.add("d-none");
+
+    // 顯示新畫面
+    showEl.classList.remove("d-none");
+
+    // 重置動畫狀態，強迫瀏覽器重新計算，才會觸發 transition
+    showEl.classList.remove("is-active");
+    void showEl.offsetWidth; // 小技巧：強制 reflow
+    showEl.classList.add("is-active");
+  }
+
   function showRegisterView() {
-    if (registerView && loginView) {
-      registerView.classList.remove("d-none");
-      loginView.classList.add("d-none");
-    }
+    switchView(registerView, loginView);
   }
 
   function showLoginView() {
-    if (registerView && loginView) {
-      registerView.classList.add("d-none");
-      loginView.classList.remove("d-none");
-    }
+    switchView(loginView, registerView);
   }
 
+  // 初始化：一開始顯示註冊畫面並加上動畫
   showRegisterView();
 
+  // 登出 → 回到註冊畫面（也會播動畫）
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       showRegisterView();

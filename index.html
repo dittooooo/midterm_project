@@ -34,7 +34,7 @@
         role="main"
       >
         <div class="container w-75 py-5">
-          <div id="registerView" class="card shadow-sm">
+          <div id="registerView" class="card shadow-sm view">
             <div class="card-body p-4">
               <!-- 標題與描述的響應式布局 -->
               <div class="container p-0">
@@ -56,6 +56,7 @@
               </div>
 
               <form id="signupForm" novalidate>
+                <!-- 註冊成功提示 -->
                 <div
                   id="result"
                   class="alert alert-success mt-3 d-none"
@@ -63,6 +64,7 @@
                 >
                   <p>註冊成功</p>
                 </div>
+
                 <div class="mb-2">
                   <label for="fullname" class="form-label">姓名（必填）</label>
                   <input
@@ -223,7 +225,7 @@
           </div>
 
           <!-- 簡易登入介面 -->
-          <div id="loginView" class="card shadow-sm d-none mt-4">
+          <div id="loginView" class="card shadow-sm d-none mt-4 view">
             <div class="card-body p-4 text-center">
               <h1 class="mb-3">登入</h1>
               <p class="mb-4">已成功登入系統。</p>
