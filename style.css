@@ -133,14 +133,14 @@ body,
   background-color: var(--btn-color);
 
   position: fixed;
-  left: 3rem; /* 想更靠邊可以改成 1rem 或 0.5rem */
-  bottom: 2rem; /* 想更貼底就改小一點 */
+  left: 3rem;
+  bottom: 2rem;
   width: 3rem;
   height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050; /* 比卡片、Navbar 都高，方便點 */
+  z-index: 1050;
 }
 
 .theme-toggle-fab:hover,
@@ -164,11 +164,10 @@ body,
 
 .view {
   opacity: 0;
-  transform: translateY(12px); /* 一點點往下，等等往上浮出來 */
+  transform: translateY(12px);
   transition: opacity 0.26s ease, transform 0.26s ease;
 }
 
-/* 顯示中的畫面（淡入＋往上） */
 .view.is-active {
   opacity: 1;
   transform: translateY(0);
