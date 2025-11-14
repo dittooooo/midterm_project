@@ -108,13 +108,13 @@ main {
   background: rgba(127, 127, 127, 0.08);
 }
 
-#submitBtn {
+.btnStyle {
   background-color: var(--btn-color);
   color: var(--btn-text);
   border: none;
 }
 
-#submitBtn:hover {
+.btnStyle:hover {
   background-color: var(--btn-hover-color);
   color: var(--btn-text);
 }
@@ -133,25 +133,25 @@ body,
   background-color: var(--btn-color);
 
   position: fixed;
-  left: 3rem; /* 想更靠邊可以改成 1rem 或 0.5rem */
-  bottom: 2rem; /* 想更貼底就改小一點 */
+  left: 3rem;
+  bottom: 2rem;
   width: 3rem;
   height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050; /* 比卡片、Navbar 都高，方便點 */
+  z-index: 1050;
 }
 
 .theme-toggle-fab:hover,
 .theme-toggle-fab:focus-visible {
   background-color: var(--btn-hover-color);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
+  box-shadow: 0 8px 18px var(--shadow-color);
 }
 
 .theme-toggle-fab:active {
   transform: scale(0.97) translateY(0);
-  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
+  box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 #themeIcon.fa-moon {
@@ -160,6 +160,17 @@ body,
 
 #themeIcon.fa-sun {
   color: #dca709;
+}
+
+.view {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+
+.view.is-active {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (max-width: 800px) {

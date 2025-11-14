@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>會員註冊</title>
+    <title>自修室座位預約系統</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -22,9 +22,11 @@
     <div class="min-vh-100">
       <nav class="navbar border-bottom px-5">
         <div class="container-fluid">
-          <h3 class="navbar-brand mb-0 text-white">會員系統</h3>
+          <h3 class="navbar-brand mb-0 text-white">自修室座位預約系統</h3>
           <div class="d-flex align-items-center gap-2">
-            <a class="link-body-emphasis nav-link px-2" href="#">登入</a>
+            <a id="navLogin" class="link-body-emphasis nav-link px-2" href="#"
+              >登入</a
+            >
           </div>
         </div>
       </nav>
@@ -33,10 +35,10 @@
         class="d-flex align-items-center justify-content-center"
         role="main"
       >
-        <div class="container w-75 py-4">
-          <div class="card shadow-sm">
+        <div class="container w-75 py-5">
+          <!-- 會員註冊表單 -->
+          <div id="registerView" class="card shadow-sm view">
             <div class="card-body p-4">
-              <!-- 標題與描述的響應式布局 -->
               <div class="container p-0">
                 <div class="row mb-3 gx-4 align-items-end">
                   <div class="col-auto">
@@ -44,18 +46,26 @@
                       class="card-title mb-md-0 mb-2"
                       style="white-space: nowrap"
                     >
-                      會員註冊
+                      自修室會員註冊
                     </h1>
                   </div>
                   <div class="col-12 col-md-auto">
-                    <p class="lead mb-0 text-nowrap">
-                      請填寫下列資訊建立帳號。
+                    <p class="lead mb-0">
+                      請填寫下列資訊建立自修室帳號以預約座位。
                     </p>
                   </div>
                 </div>
               </div>
 
               <form id="signupForm" novalidate>
+                <div
+                  id="result"
+                  class="alert alert-success mt-3 d-none"
+                  role="status"
+                >
+                  <p>註冊成功</p>
+                </div>
+
                 <div class="mb-2">
                   <label for="fullname" class="form-label">姓名（必填）</label>
                   <input
@@ -199,7 +209,11 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
-                  <button type="submit" id="submitBtn" class="btn btn-primary">
+                  <button
+                    type="submit"
+                    id="submitBtn"
+                    class="btn btn-primary btnStyle"
+                  >
                     註冊
                   </button>
                   <div
@@ -211,19 +225,109 @@
                     處理中…
                   </div>
                 </div>
-
-                <div
-                  id="result"
-                  class="alert alert-success mt-3 d-none"
-                  role="status"
-                >
-                  <p>註冊成功</p>
-                </div>
               </form>
+            </div>
+          </div>
+
+          <!-- 簡易預約介面 -->
+
+          <div id="userHome" class="card shadow-sm d-none mt-4 view">
+            <div class="card-body p-4 text-center">
+              <h1 class="mb-3">自修室座位預約</h1>
+              <p id="loginMes" class="mb-4">已成功登入系統。</p>
+              <hr class="my-4" />
+              <h5 class="mb-3">座位狀態</h5>
+              <p id="seatInfo" class="mb-3">
+                目前尚未預約座位，請點擊「預約座位」取得座位。
+              </p>
+
+              <div class="d-flex justify-content-center gap-2 mb-4">
+                <button
+                  id="reserveSeatBtn"
+                  type="button"
+                  class="btn btn-primary btnStyle"
+                >
+                  預約座位
+                </button>
+                <button
+                  id="releaseSeatBtn"
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  disabled
+                >
+                  取消座位
+                </button>
+              </div>
+
+              <button id="logoutBtn" class="btn btn-secondary btnStyle">
+                登出
+              </button>
             </div>
           </div>
         </div>
       </main>
+
+      <!-- Dummy login -->
+      <div
+        class="modal fade"
+        id="loginModal"
+        tabindex="-1"
+        aria-labelledby="loginModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="loginModalLabel">會員登入</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="關閉"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="loginName" class="form-label">姓名</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="loginName"
+                  autocomplete="username"
+                />
+              </div>
+              <div class="mb-1">
+                <label for="loginPassword" class="form-label">密碼</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="loginPassword"
+                  autocomplete="current-password"
+                />
+              </div>
+              <div id="loginError" class="text-danger small mt-1 d-none">
+                姓名或密碼錯誤，請再試一次。
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary btnStyle"
+                id="loginSubmitBtn"
+              >
+                登入
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       <button
         id="themeToggle"
         type="button"
