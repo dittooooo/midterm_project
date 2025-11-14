@@ -1,3 +1,8 @@
+// =============================================================
+// 深色模式切換:
+// 1. 讀取和儲存使用者的主題設定，不會隨者刷新或退出就變回預設。
+// 2. 按下按鈕時會切換主體。
+// =============================================================
 (() => {
   const KEY = "bs-theme";
   const root = document.documentElement;
@@ -17,11 +22,9 @@
     }
   };
 
-  // 1) 預設 light；若有使用者設定就以設定為準
   const saved = localStorage.getItem(KEY);
   apply(saved === "dark" ? "dark" : "light");
 
-  // 2) 切換
   if (btn) {
     btn.addEventListener("click", () => {
       const cur = root.getAttribute("data-bs-theme") || "light";
@@ -32,7 +35,15 @@
   }
 })();
 
+// ===================================================================
+// 註冊和登入系統: 等 HTML 完全載入完後，再開始處理。
+// 1. 註冊、登入、登出。
+// 2. 註冊後儲存會員資料到 localStorage。
+// 3. 表單驗證和顯示密碼強度。
+// 4. 註冊送出成功以後倒數3秒自動登入。
+// ===================================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // 變數
   const form = document.getElementById("signupForm");
   const strengthBar = document.querySelector("#passwordStrength .progress-bar");
   const strengthText = document.getElementById("strengthText");
@@ -41,7 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginView = document.getElementById("loginView");
   const logoutBtn = document.getElementById("logoutBtn");
   const navLoginLink = document.getElementById("navLogin");
-  const MEMBER_KEY = "memberInfo";
+
+  const MEMBER_KEY = "members";
+  let currentMemberName = "";
+
+  // Login Modal 相關變數
   const loginModalEl = document.getElementById("loginModal");
   const loginNameInput = document.getElementById("loginName");
   const loginPasswordInput = document.getElementById("loginPassword");
@@ -53,6 +68,11 @@ document.addEventListener("DOMContentLoaded", () => {
     loginModal = new bootstrap.Modal(loginModalEl);
   }
 
+  // -------------------------------------------------
+  // 儲存和讀取會員資料:
+  // 1. saveMemberToStorage: 將新註冊的會員加到 members 中。
+  // 2. getMemberFromStorage: 回傳所有註冊會員。
+  // -------------------------------------------------
   function saveMemberToStorage() {
     const member = {
       fullname: document.getElementById("fullname").value.trim(),
@@ -60,20 +80,34 @@ document.addEventListener("DOMContentLoaded", () => {
       email: document.getElementById("email").value.trim(),
       phone: document.getElementById("phone").value.trim(),
     };
-    localStorage.setItem(MEMBER_KEY, JSON.stringify(member));
+
+    const raw = localStorage.getItem(MEMBER_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+
+    list.push(member);
+
+    localStorage.setItem(MEMBER_KEY, JSON.stringify(list));
+
+    return member;
   }
 
   function getMemberFromStorage() {
     const raw = localStorage.getItem(MEMBER_KEY);
-    if (!raw) return null;
+    if (!raw) return [];
     try {
-      return JSON.parse(raw);
+      const list = JSON.parse(raw);
+      return Array.isArray(list) ? list : [];
     } catch {
-      return null;
+      return [];
     }
   }
 
-  // 處理模擬登入
+  // -------------------------------------------------
+  // 切換註冊和登入畫面:
+  // 1. switchView: 處理畫面切換時得過場動畫。
+  // 2. showRegisterView: 顯示註冊畫面。
+  // 3. showLoginView: 顯示登入畫面，並根據登入的帳號名稱顯示訊息。
+  // -------------------------------------------------
   function switchView(showEl, hideEl) {
     if (!showEl || !hideEl) return;
 
@@ -92,24 +126,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showLoginView() {
+    const mes = document.getElementById("loginMes");
+    if (mes) {
+      if (currentMemberName) {
+        mes.textContent = `${currentMemberName}，歡迎登入！`;
+      } else {
+        mes.textContent = "已成功登入系統。";
+      }
+    }
+
     switchView(loginView, registerView);
   }
 
-  // 初始化：一開始顯示註冊畫面並加上動畫
   showRegisterView();
 
-  // 登出 → 回到註冊畫面（也會播動畫）
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
+      currentMemberName = "";
       showRegisterView();
     });
   }
 
+  // -------------------------------------------------
+  // 登入按鈕
+  // 1. 點右上角登入會打開 modal，讓使用者輸入姓名密碼。
+  // 2. 送出時從已註冊過的帳號中找對應帳號。
+  // -------------------------------------------------
   if (navLoginLink && loginModal) {
     navLoginLink.addEventListener("click", (e) => {
       e.preventDefault();
 
-      // reset 欄位與錯誤訊息
       if (loginError) loginError.classList.add("d-none");
       if (loginNameInput) loginNameInput.value = "";
       if (loginPasswordInput) loginPasswordInput.value = "";
@@ -118,40 +164,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Modal 內的登入按鈕：用 localStorage 資料模擬登入
   if (loginSubmitBtn && loginModal) {
     loginSubmitBtn.addEventListener("click", () => {
-      const member = getMemberFromStorage();
-      if (!member) {
-        if (loginError) {
-          loginError.textContent = "目前沒有註冊資料，請先完成註冊。";
-          loginError.classList.remove("d-none");
-        }
+      const members = getMemberFromStorage();
+
+      const nameInput = loginNameInput.value.trim();
+      const pwdInput = loginPasswordInput.value;
+
+      if (!nameInput || !pwdInput) {
+        loginError.textContent = "請輸入資料。";
+        loginError.classList.remove("d-none");
         return;
       }
 
-      const nameInput = loginNameInput?.value.trim() || "";
-      const pwdInput = loginPasswordInput?.value || "";
-
-      const nameOk = nameInput === member.fullname;
-      const pwOk = pwdInput === member.password;
-
-      if (!nameOk || !pwOk) {
-        if (loginError) {
-          loginError.textContent = "姓名或密碼錯誤，請再試一次。";
-          loginError.classList.remove("d-none");
-        }
+      const sameName = members.find((m) => m.fullname === nameInput);
+      if (!sameName) {
+        loginError.textContent = "目前沒有註冊資料，請先完成註冊。";
+        loginError.classList.remove("d-none");
         return;
       }
 
-      // 登入成功：關掉 modal，切到登入畫面（有動畫）
-      if (loginError) loginError.classList.add("d-none");
+      if (sameName.password !== pwdInput) {
+        loginError.textContent = "姓名或密碼錯誤，請再試一次。";
+        loginError.classList.remove("d-none");
+        return;
+      }
+
+      currentMemberName = sameName.fullname;
+      loginError.classList.add("d-none");
       loginModal.hide();
       showLoginView();
     });
   }
 
-  // 驗證功能
+  // -------------------------------------------------
+  // 表單驗證的狀態（紀錄欄位有沒有被輸入過）
+  // -------------------------------------------------
   const validationState = {
     fullname: false,
     email: false,
@@ -160,7 +208,12 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmPassword: false,
     terms: false,
   };
-  // 密碼強度檢查函數
+
+  // -------------------------------------------------
+  // 密碼強度:
+  // 1. checkPasswordStrength: 根據長度、數字、大小寫、符號計算分數和訊息。
+  // 2. updatePasswordStrength: 更新進度條的寬度、顏色和訊息。
+  // -------------------------------------------------
   function checkPasswordStrength(password) {
     const hasNumber = /[0-9]/.test(password);
     const hasAlpha = /[A-Za-z]/.test(password);
@@ -168,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasLower = /[a-z]/.test(password);
     const hasSymbol = /[^A-Za-z0-9]/.test(password);
 
-    let score = 0; // 以 20 為單位，最多 80
+    let score = 0;
     if (password.length >= 8) {
       score += 20;
       if (hasNumber || hasAlpha) score += 20;
@@ -192,7 +245,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return { score, feedback };
   }
 
-  // 更新密碼強度顯示
   function updatePasswordStrength(password) {
     const { score, feedback } = checkPasswordStrength(password);
 
@@ -212,6 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
     strengthText.textContent = "密碼強度: " + feedback;
   }
 
+  // -------------------------------------------------
+  // 表單欄位設定和即時驗證:
+  // 1. fields: 處理各個欄位驗證時的規則和錯誤提示。
+  // 2. 根據不同欄位去做驗證。
+  // -------------------------------------------------
   const fields = {
     fullname: {
       input: document.getElementById("fullname"),
@@ -261,9 +318,8 @@ document.addEventListener("DOMContentLoaded", () => {
       validate: (value) => {
         const password = document.getElementById("password").value;
         const passwordField = fields.password;
-
-        // 如果密碼欄位無效，確認密碼也要顯示錯誤
         const passwordError = passwordField.validate(password);
+
         if (passwordError) {
           return "請先設定符合格式的密碼";
         }
@@ -283,33 +339,25 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
-  // 即時驗證：當離開輸入框或輸入時進行驗證
   Object.keys(fields).forEach((fieldName) => {
     const field = fields[fieldName];
 
-    // 當離開輸入框時驗證
     field.input.addEventListener("blur", () => {
-      validationState[fieldName] = true; // 標記此欄位已被驗證過
+      validationState[fieldName] = true;
       validateField(fieldName);
     });
 
-    // 特殊欄位的即時驗證
     if (fieldName === "confirmPassword") {
       field.input.addEventListener("input", () => {
         if (validationState[fieldName]) {
-          // 只有在曾經驗證過才即時驗證
           validateField(fieldName);
         }
       });
     }
 
-    // 密碼變更時重新驗證確認密碼
     if (fieldName === "password") {
       field.input.addEventListener("input", () => {
-        // 更新密碼強度指示器
         updatePasswordStrength(field.input.value);
-
-        // 重新驗證確認密碼
 
         if (
           validationState["confirmPassword"] &&
@@ -320,7 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // 對於 checkbox，改變時就要驗證
     if (field.input.type === "checkbox") {
       field.input.addEventListener("change", () => {
         validationState[fieldName] = true;
@@ -329,7 +376,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 單一欄位驗證
+  // -------------------------------------------------
+  // 單一欄位驗證與全部欄位驗證:
+  // 1. validateField: 根據對應的規則去檢查欄位，標示是否通過。
+  // 2. validateAllFields: 點擊送出時將沒驗證過的全部驗證一遍。
+  // -------------------------------------------------
   function validateField(fieldName) {
     const field = fields[fieldName];
     const value =
@@ -349,19 +400,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 驗證所有欄位並返回是否全部有效
   function validateAllFields() {
     let isValid = true;
+
     Object.keys(fields).forEach((fieldName) => {
+      const field = fields[fieldName];
+      const inputEl = field.input;
+
       validationState[fieldName] = true;
+
+      const alreadyValid = inputEl.classList.contains("is-valid");
+      if (alreadyValid) {
+        return;
+      }
+
       if (!validateField(fieldName)) {
         isValid = false;
       }
     });
+
     return isValid;
   }
 
-  // 表單提交時驗證所有欄位
+  // -------------------------------------------------
+  // 表單送出流程（註冊 -> 模擬處理中 -> 倒數自動登入):
+  // 1. 先做驗證，姓名是否已經註冊過了，或是有驗證失敗的就立刻停止。
+  // 2. 通過後顯示處理中，讓送出按鈕不能被點擊，防止重複送出，再去儲存會員資訊。
+  // 3. 顯示註冊成功後倒數3秒，自動切換到登入畫面。
+  // -------------------------------------------------
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
@@ -377,10 +443,27 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // 模擬送出
+    const members = getMemberFromStorage();
+    const fullnameValue = document.getElementById("fullname").value.trim();
+    const duplicated = members.find((m) => m.fullname === fullnameValue);
+
+    if (duplicated) {
+      const fullnameField = fields.fullname;
+
+      fullnameField.input.classList.add("is-invalid");
+      fullnameField.input.classList.remove("is-valid");
+      fullnameField.error.textContent =
+        "此姓名已註冊，請直接登入或使用其他姓名";
+
+      busyMsg.style.display = "none";
+      submitBtn.disabled = false;
+      return;
+    }
+
     setTimeout(() => {
       busyMsg.style.display = "none";
-      saveMemberToStorage();
+      const newMember = saveMemberToStorage();
+      currentMemberName = newMember.fullname;
 
       clearForm();
 
@@ -406,7 +489,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1000);
   });
 
-  // 重設所有驗證狀態
+  // -------------------------------------------------
+  // 重置整個表單:
+  // 註冊成功後，將所有欄位、驗證提示和密碼強度清空。
+  // -------------------------------------------------
   function clearForm() {
     Object.keys(fields).forEach((fieldName) => {
       const field = fields[fieldName];
