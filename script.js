@@ -36,11 +36,11 @@
 })();
 
 // ===================================================================
-// 註冊和登入系統: 等 HTML 完全載入完後，再開始處理。
-// 1. 註冊、登入、登出。
-// 2. 註冊後儲存會員資料到 localStorage。
-// 3. 表單驗證和顯示密碼強度。
-// 4. 註冊送出成功以後倒數3秒自動登入。
+// 註冊、登入和自修室座位預約系統:
+// 1. 註冊、登入、登出，使用 localStorage 去儲存會員資料。
+// 2. 表單驗證和密碼強度顯示。
+// 3. 註冊成功後倒數 3 秒自動登入。
+// 4. 登入後可以預約、取消自修室座位（A01~A30），已經被預約的位置不可重複預約。
 // ===================================================================
 document.addEventListener("DOMContentLoaded", () => {
   // 變數
@@ -49,12 +49,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const strengthText = document.getElementById("strengthText");
   const submitBtn = document.getElementById("submitBtn");
   const registerView = document.getElementById("registerView");
-  const loginView = document.getElementById("loginView");
+  const userHome = document.getElementById("userHome");
   const logoutBtn = document.getElementById("logoutBtn");
   const navLoginLink = document.getElementById("navLogin");
 
-  const MEMBER_KEY = "members";
-  let currentMemberName = "";
+  const USER_KEY = "Users";
+  let currentUserName = "";
 
   // Login Modal 相關變數
   const loginModalEl = document.getElementById("loginModal");
@@ -68,31 +68,44 @@ document.addEventListener("DOMContentLoaded", () => {
     loginModal = new bootstrap.Modal(loginModalEl);
   }
 
+  // 座位預約相關變數
+  const seatInfo = document.getElementById("seatInfo");
+  const reserveSeatBtn = document.getElementById("reserveSeatBtn");
+  const releaseSeatBtn = document.getElementById("releaseSeatBtn");
+
+  // 可用座位表 A01 ~ A30
+  const ALL_SEATS = Array.from(
+    { length: 30 },
+    (_, i) => `A${String(i + 1).padStart(2, "0")}`
+  );
+
   // -------------------------------------------------
   // 儲存和讀取會員資料:
-  // 1. saveMemberToStorage: 將新註冊的會員加到 members 中。
-  // 2. getMemberFromStorage: 回傳所有註冊會員。
+  // 1. saveUserToStorage: 將新註冊的會員加到 Users 中。
+  // 2. getUserFromStorage: 回傳所有註冊會員。
   // -------------------------------------------------
-  function saveMemberToStorage() {
-    const member = {
+  function saveUserToStorage() {
+    const User = {
       fullname: document.getElementById("fullname").value.trim(),
       password: document.getElementById("password").value,
       email: document.getElementById("email").value.trim(),
       phone: document.getElementById("phone").value.trim(),
+      seatCode: null,
+      seatTime: null,
     };
 
-    const raw = localStorage.getItem(MEMBER_KEY);
+    const raw = localStorage.getItem(USER_KEY);
     const list = raw ? JSON.parse(raw) : [];
 
-    list.push(member);
+    list.push(User);
 
-    localStorage.setItem(MEMBER_KEY, JSON.stringify(list));
+    localStorage.setItem(USER_KEY, JSON.stringify(list));
 
-    return member;
+    return User;
   }
 
-  function getMemberFromStorage() {
-    const raw = localStorage.getItem(MEMBER_KEY);
+  function getUserFromStorage() {
+    const raw = localStorage.getItem(USER_KEY);
     if (!raw) return [];
     try {
       const list = JSON.parse(raw);
@@ -103,10 +116,48 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------------------------------
+  // 自修室座位預約:
+  // 1. updateUserSeat: 更新會員的座位資訊。
+  // 2. updateSeatView:   更新畫面上的座位預約資訊。
+  // -------------------------------------------------
+
+  function updateUserSeat(fullname, seatCode, seatTime) {
+    const Users = getUserFromStorage();
+    const idx = Users.findIndex((m) => m.fullname === fullname);
+    if (idx === -1) return null;
+
+    Users[idx] = {
+      ...Users[idx],
+      seatCode: seatCode,
+      seatTime: seatTime,
+    };
+
+    localStorage.setItem(USER_KEY, JSON.stringify(Users));
+    return Users[idx];
+  }
+
+  function updateSeatView() {
+    if (!seatInfo) return;
+
+    const Users = getUserFromStorage();
+    const me = Users.find((m) => m.fullname === currentUserName);
+
+    if (me.seatCode) {
+      seatInfo.textContent = `你目前已預約座位：${me.seatCode}（預約時間：${me.seatTime}）`;
+      if (reserveSeatBtn) reserveSeatBtn.disabled = true;
+      if (releaseSeatBtn) releaseSeatBtn.disabled = false;
+    } else {
+      seatInfo.textContent = "目前尚未預約座位，請點擊「預約座位」取得座位。";
+      if (reserveSeatBtn) reserveSeatBtn.disabled = false;
+      if (releaseSeatBtn) releaseSeatBtn.disabled = true;
+    }
+  }
+
+  // -------------------------------------------------
   // 切換註冊和登入畫面:
-  // 1. switchView: 處理畫面切換時得過場動畫。
+  // 1. switchView: 處理畫面切換時的過場動畫。
   // 2. showRegisterView: 顯示註冊畫面。
-  // 3. showLoginView: 顯示登入畫面，並根據登入的帳號名稱顯示訊息。
+  // 3. showUserHome: 顯示會員畫面、座位狀態。
   // -------------------------------------------------
   function switchView(showEl, hideEl) {
     if (!showEl || !hideEl) return;
@@ -122,34 +173,35 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showRegisterView() {
-    switchView(registerView, loginView);
+    switchView(registerView, userHome);
   }
 
-  function showLoginView() {
+  function showUserHome() {
     const mes = document.getElementById("loginMes");
     if (mes) {
-      if (currentMemberName) {
-        mes.textContent = `${currentMemberName}，歡迎登入！`;
+      if (currentUserName) {
+        mes.textContent = `${currentUserName}，歡迎登入自修室座位預約系統！`;
       } else {
         mes.textContent = "已成功登入系統。";
       }
     }
 
-    switchView(loginView, registerView);
+    updateSeatView();
+    switchView(userHome, registerView);
   }
 
   showRegisterView();
 
   if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
-      currentMemberName = "";
+      currentUserName = "";
       showRegisterView();
     });
   }
 
   // -------------------------------------------------
-  // 登入按鈕
-  // 1. 點右上角登入會打開 modal，讓使用者輸入姓名密碼。
+  // 登入按鈕:
+  // 1. 點右上角「登入」會打開 modal，讓使用者輸入姓名 + 密碼。
   // 2. 送出時從已註冊過的帳號中找對應帳號。
   // -------------------------------------------------
   if (navLoginLink && loginModal) {
@@ -166,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (loginSubmitBtn && loginModal) {
     loginSubmitBtn.addEventListener("click", () => {
-      const members = getMemberFromStorage();
+      const Users = getUserFromStorage();
 
       const nameInput = loginNameInput.value.trim();
       const pwdInput = loginPasswordInput.value;
@@ -177,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const sameName = members.find((m) => m.fullname === nameInput);
+      const sameName = Users.find((m) => m.fullname === nameInput);
       if (!sameName) {
         loginError.textContent = "目前沒有註冊資料，請先完成註冊。";
         loginError.classList.remove("d-none");
@@ -190,15 +242,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      currentMemberName = sameName.fullname;
+      currentUserName = sameName.fullname;
       loginError.classList.add("d-none");
       loginModal.hide();
-      showLoginView();
+      showUserHome();
     });
   }
 
   // -------------------------------------------------
-  // 表單驗證的狀態（紀錄欄位有沒有被輸入過）
+  // 表單驗證的狀態:
+  // 紀錄欄位有沒有被點過或驗證過
   // -------------------------------------------------
   const validationState = {
     fullname: false,
@@ -379,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------------------------------
   // 單一欄位驗證與全部欄位驗證:
   // 1. validateField: 根據對應的規則去檢查欄位，標示是否通過。
-  // 2. validateAllFields: 點擊送出時將沒驗證過的全部驗證一遍。
+  // 2. validateAllFields: 點擊送出時將沒通過的欄位全部驗證一遍。
   // -------------------------------------------------
   function validateField(fieldName) {
     const field = fields[fieldName];
@@ -423,10 +476,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------------------------------
-  // 表單送出流程（註冊 -> 模擬處理中 -> 倒數自動登入):
-  // 1. 先做驗證，姓名是否已經註冊過了，或是有驗證失敗的就立刻停止。
-  // 2. 通過後顯示處理中，讓送出按鈕不能被點擊，防止重複送出，再去儲存會員資訊。
-  // 3. 顯示註冊成功後倒數3秒，自動切換到登入畫面。
+  // 表單送出流程（註冊 -> 模擬處理中 -> 倒數後自動登入):
+  // 1. 先做驗證，或是有驗證失敗的就立刻停止。
+  // 2. 確認姓名沒有重複註冊。
+  // 3. 通過後顯示處理中，再去儲存會員資訊。
+  // 4. 顯示註冊成功後倒數3秒，自動切換到登入畫面。
   // -------------------------------------------------
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -443,9 +497,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const members = getMemberFromStorage();
+    const Users = getUserFromStorage();
     const fullnameValue = document.getElementById("fullname").value.trim();
-    const duplicated = members.find((m) => m.fullname === fullnameValue);
+    const duplicated = Users.find((m) => m.fullname === fullnameValue);
 
     if (duplicated) {
       const fullnameField = fields.fullname;
@@ -453,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fullnameField.input.classList.add("is-invalid");
       fullnameField.input.classList.remove("is-valid");
       fullnameField.error.textContent =
-        "此姓名已註冊，請直接登入或使用其他姓名";
+        "姓名已被註冊，請直接登入或使用其他姓名";
 
       busyMsg.style.display = "none";
       submitBtn.disabled = false;
@@ -462,8 +516,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setTimeout(() => {
       busyMsg.style.display = "none";
-      const newMember = saveMemberToStorage();
-      currentMemberName = newMember.fullname;
+      const newUser = saveUserToStorage();
+      currentUserName = newUser.fullname;
 
       clearForm();
 
@@ -483,7 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
           clearInterval(timer);
           result.classList.add("d-none");
           submitBtn.disabled = false;
-          showLoginView();
+          showUserHome();
         }
       }, 1000);
     }, 1000);
@@ -510,6 +564,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
     Object.keys(validationState).forEach((field) => {
       validationState[field] = false;
+    });
+  }
+
+  // -------------------------------------------------
+  // 自修室座位預約系統按鈕事件:
+  // 1. 預約座位: 隨機分配 A01–A30 中還沒被借走的座位。
+  // 2. 取消座位: 清空儲存在使用者資訊裡借的座位，讓其他人可以使用。
+  // -------------------------------------------------
+  if (reserveSeatBtn) {
+    reserveSeatBtn.addEventListener("click", () => {
+      if (!currentUserName) return;
+
+      const Users = getUserFromStorage();
+      const me = Users.find((m) => m.fullname === currentUserName);
+
+      const takenSeats = Users.map((m) => m.seatCode).filter((code) => !!code);
+      const availableSeats = ALL_SEATS.filter(
+        (code) => !takenSeats.includes(code)
+      );
+
+      if (availableSeats.length === 0) {
+        if (seatInfo) {
+          seatInfo.textContent = "目前沒有空座位，請稍後再試。";
+        }
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * availableSeats.length);
+      const seatCode = availableSeats[randomIndex];
+      const seatTime = new Date().toLocaleString("zh-TW", {
+        hour12: false,
+      });
+
+      const updated = updateUserSeat(currentUserName, seatCode, seatTime);
+      if (updated) {
+        updateSeatView();
+      }
+    });
+  }
+
+  if (releaseSeatBtn) {
+    releaseSeatBtn.addEventListener("click", () => {
+      if (!currentUserName) return;
+
+      const Users = getUserFromStorage();
+      const me = Users.find((m) => m.fullname === currentUserName);
+      if (!me || !me.seatCode) {
+        updateSeatView();
+        return;
+      }
+
+      const updated = updateUserSeat(currentUserName, null, null);
+      if (updated) {
+        updateSeatView();
+      }
     });
   }
 });
